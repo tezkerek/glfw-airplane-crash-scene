@@ -207,6 +207,13 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
+        glm::mat4 rotation =
+            glm::rotate(glm::radians(105.0f), glm::vec3(1.0f, 0.25f, 0.0f));
+        glm::mat4 scale = glm::scale(glm::vec3(20.0f, 20.0f, 20.0f));
+        glm::mat4 transl = glm::translate(glm::vec3(0.0f, 0.0f, 15.0f));
+        myMatrix = transl * scale * rotation;
+        glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
+
         airplane.Draw(sceneShader);
 
         glFlush();
