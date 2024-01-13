@@ -1,6 +1,6 @@
 # Blender 4.0.2
 # www.blender.org
-mtllib airplane2.mtl
+mtllib airplane.mtl
 o Sphere.003
 v -0.086591 0.580232 6.250629
 v -0.172481 0.552595 6.250629

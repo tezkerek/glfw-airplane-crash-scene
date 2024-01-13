@@ -218,6 +218,8 @@ public:
 
         airplane.Draw(sceneShader);
 
+        codCol = 2;
+        glUniform1i(codColLocation, codCol);
         rotation = glm::rotate(glm::radians(90.f), glm::vec3(1.0f, 0.f, 0.0f));
         scale = glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
         for (auto &&[treeType, coordinates] : TREE_COORDINATES) {
