@@ -220,8 +220,7 @@ public:
 
         rotation = glm::rotate(glm::radians(90.f), glm::vec3(1.0f, 0.f, 0.0f));
         scale = glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
-        for (auto &&[treeType, coordinates] : TREE_COORDINATES)
-        {
+        for (auto &&[treeType, coordinates] : TREE_COORDINATES) {
             const float treeXCoord = coordinates.first;
             const float treeYCoord = coordinates.second;
 
