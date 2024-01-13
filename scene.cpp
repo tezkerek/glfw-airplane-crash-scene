@@ -225,7 +225,7 @@ public:
         for (auto &&[treeType, coordinates] : treeCoordonates)
         {
             const float treeXCoord = coordinates.first;
-            const float treeYCoord = coordinates.first;
+            const float treeYCoord = coordinates.second;
 
             transl = glm::translate(glm::vec3(treeXCoord, treeYCoord, 0.0f));
 
