@@ -238,7 +238,7 @@ public:
         glFlush();
     }
 
-     void OnKeyPress(int button) {
+    void OnKeyPress(int button) {
         switch (button) {
         case GLFW_KEY_LEFT:
             beta -= 0.05;
