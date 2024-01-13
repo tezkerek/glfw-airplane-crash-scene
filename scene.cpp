@@ -11,6 +11,7 @@
 
 #include "model.h"
 #include "shader.h"
+#include "values.h"
 
 const float PI = 3.141592;
 const float windowWidth = 800, windowHeight = 600;
@@ -31,11 +32,13 @@ class Scene {
 
     Shader sceneShader;
     Model airplane;
+    Model tree;
 
 public:
     Scene()
         : sceneShader("scene.vert", "scene.frag")
-        , airplane("assets/airplane.obj") {
+        , airplane("assets/airplane.obj")
+        , tree("assets/trees.obj") {
         sceneShader.use();
     }
 
@@ -214,6 +217,20 @@ public:
         glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
         airplane.Draw(sceneShader);
+
+        rotation = glm::rotate(glm::radians(90.f), glm::vec3(1.0f, 0.f, 0.0f));
+        scale = glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
+        for (auto &&[treeType, coordinates] : TREE_COORDINATES) {
+            const float treeXCoord = coordinates.first;
+            const float treeYCoord = coordinates.second;
+
+            transl = glm::translate(glm::vec3(treeXCoord, treeYCoord, 0.0f));
+
+            myMatrix = transl * scale * rotation;
+            glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
+
+            tree.meshes[treeType].Draw(sceneShader);
+        }
 
         glFlush();
     }
