@@ -27,7 +27,7 @@ const float lightX = 500.f, lightY = 100.f, lightZ = 600.f;
 class Scene {
     GLuint VaoId, VboId, EboId, skyboxVAO, skyboxVBO, skyboxEboId, myMatrixLocation, matrUmbraLocation,
         viewLocation, projLocation, lightColorLocation, lightPosLocation,
-        viewPosLocation, codColLocation;
+        viewPosLocation, codColLocation, texture;
 
     float alpha = PI / 8, beta = 0.0f, dist = 400.0f;
     float Vx = 0.0, Vy = 0.0, Vz = 1.0;
@@ -200,6 +200,26 @@ public:
         glDeleteVertexArrays(1, &VaoId);
     }
 
+    void LoadTexture(const char* photoPath) {
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+	    //	Desfasurarea imaginii pe orizonatala/verticala in functie de parametrii de texturare;
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        int width, height, nrChannels;
+        unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+        if(data) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+        }
+
+        stb_image_free(data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
     void Initialize(void) {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         CreateSkyboxVBO();
@@ -242,6 +262,11 @@ public:
             GLfloat(windowWidth) / GLfloat(windowHeight),
             znear);
         glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
+
+        ///Incarcarea texturii si legarea acesteia cu shaderul;
+        LoadTexture("assets/Texture/forrest_ground_01.png");
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         // matricea pentru umbra
         float D = -2.5f;
