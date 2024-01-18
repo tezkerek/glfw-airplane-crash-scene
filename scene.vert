@@ -24,7 +24,7 @@ uniform int codCol;
 
 void main(void) {
     ex_Color = vec3(1.0f, 1.0f, 1.0f);
-    if (codCol == 0 || codCol == 2 || codCol == 3) {
+    if (codCol == 0 || codCol == 2) {
         gl_Position = projection * view * myMatrix * in_Position;
         Normal = mat3(projection * view * myMatrix) * in_Normal;
         inLightPos = vec3(projection * view * myMatrix * vec4(lightPos, 1.0f));

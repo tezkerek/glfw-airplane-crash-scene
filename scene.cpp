@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,7 +27,7 @@ const float lightX = 500.f, lightY = 100.f, lightZ = 600.f;
 class Scene {
     GLuint VaoId, VboId, EboId, skyboxVAO, skyboxVBO, skyboxEboId, myMatrixLocation, matrUmbraLocation,
         viewLocation, projLocation, lightColorLocation, lightPosLocation,
-        viewPosLocation, codColLocation, texture;
+        viewPosLocation, codColLocation, texture, TextureFile;
 
     float alpha = PI / 8, beta = 0.0f, dist = 400.0f;
     float Vx = 0.0, Vy = 0.0, Vz = 1.0;
@@ -135,7 +135,12 @@ public:
         GLushort Indices[] = {
             1, 2, 0, 2, 0, 3
         };
-        
+        GLfloat TextureCoordinates[] = {
+            0.0f, 0.0f,
+            5.0f, 0.0f, 
+            5.0f, 5.0f,
+            0.0f, 5.0f,
+        };
         // clang-format on
 
         glGenVertexArrays(1, &VaoId);
@@ -147,7 +152,7 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId);
 
         glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(Vertices) + sizeof(Colors) + sizeof(Normals),
+                     sizeof(Vertices) + sizeof(Colors) + sizeof(Normals) + sizeof(TextureCoordinates),
                      NULL,
                      GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertices), Vertices);
@@ -159,6 +164,10 @@ public:
                         sizeof(Vertices) + sizeof(Colors),
                         sizeof(Normals),
                         Normals);
+        glBufferSubData(GL_ARRAY_BUFFER,
+                        sizeof(Vertices) + sizeof(Colors) + sizeof(Normals), 
+                        sizeof(TextureCoordinates),
+                        TextureCoordinates);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                      sizeof(Indices),
                      Indices,
@@ -190,11 +199,11 @@ public:
 
         glEnableVertexAttribArray(3); // atributul 3 = texturare
         glVertexAttribPointer(3,
-                              3,
+                              2,
                               GL_FLOAT,
                               GL_FALSE,
-                              3 * sizeof(GLfloat),
-                              (GLvoid *)sizeof(Vertices));
+                              2 * sizeof(GLfloat),
+                              (GLvoid *)(sizeof(Vertices) + sizeof(Colors) + sizeof(Normals)));
 
     }
 
@@ -208,29 +217,6 @@ public:
         glDeleteBuffers(1, &EboId);
         glBindVertexArray(0);
         glDeleteVertexArrays(1, &VaoId);
-    }
-
-    void LoadTexture(const char* photoPath) {
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-	    //	Desfasurarea imaginii pe orizonatala/verticala in functie de parametrii de texturare;
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        int width, height, nrChannels;
-        unsigned char *data = stbi_load("assets/Texture/forrest_ground_01.png", &width, &height, &nrChannels, 0);
-        if(data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-
-        stbi_image_free(data);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     void Initialize(void) {
@@ -250,6 +236,7 @@ public:
         viewPosLocation = glGetUniformLocation(programId, "viewPos");
         codColLocation = glGetUniformLocation(programId, "codCol");
         glUniform1i(glGetUniformLocation(programId, "TexCoords"), 0);
+        TextureFile = TextureFromFile("Texture/forrest_ground_01.png", "assets");
     }
 
     void Draw(void) {
@@ -277,13 +264,11 @@ public:
             znear);
         glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
 
-        ///Incarcarea texturii si legarea acesteia cu shaderul;
-        LoadTexture("assets/Texture/forrest_ground_01.png");
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
         // matricea pentru umbra
         float D = -2.5f;
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, TextureFile);
 
         // matricea umbrei
         float matrUmbra[4][4];
@@ -310,7 +295,7 @@ public:
         glUniform3f(lightPosLocation, lightX, lightY, lightZ);
         glUniform3f(viewPosLocation, Obsx, Obsy, Obsz);
 
-        int codCol = 0;
+        int codCol = 2;
         glUniform1i(codColLocation, codCol);
         glm::mat4 myMatrix = glm::mat4(1.0f);
         glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
@@ -328,7 +313,14 @@ public:
         myMatrix = transl * scale * rotation;
         glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
+        codCol = 0;
+        glUniform1i(codColLocation, codCol);
         airplane.Draw(sceneShader);
+
+        codCol = 3;
+        glUniform1i(codColLocation, codCol);
+        
+        glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
         codCol = 2;
         glUniform1i(codColLocation, codCol);
