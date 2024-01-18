@@ -42,7 +42,7 @@ void main(void) {
     vec3 emission = vec3(0.0, 0.0, 0.0);
     float distance = length(inViewPos - FragPos);
 
-    if (codCol == 0) {
+    if (codCol == 0 || codCol == 3) {
         // Ambient
         vec3 light = computeLight();
         vec3 result = emission + light * ex_Color;

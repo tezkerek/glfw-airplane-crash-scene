@@ -187,9 +187,19 @@ public:
                               GL_FALSE,
                               3 * sizeof(GLfloat),
                               (GLvoid *)(sizeof(Vertices) + sizeof(Colors)));
+
+        glEnableVertexAttribArray(3); // atributul 3 = texturare
+        glVertexAttribPointer(3,
+                              3,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              3 * sizeof(GLfloat),
+                              (GLvoid *)sizeof(Vertices));
+
     }
 
     void DestroyVBO(void) {
+        glDisableVertexAttribArray(3);
         glDisableVertexAttribArray(2);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(0);
@@ -210,13 +220,16 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         int width, height, nrChannels;
-        unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load("assets/Texture/forrest_ground_01.png", &width, &height, &nrChannels, 0);
         if(data) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
         }
+        else {
+            std::cout << "Failed to load texture" << std::endl;
+        }
 
-        stb_image_free(data);
+        stbi_image_free(data);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -236,6 +249,7 @@ public:
         lightPosLocation = glGetUniformLocation(programId, "lightPos");
         viewPosLocation = glGetUniformLocation(programId, "viewPos");
         codColLocation = glGetUniformLocation(programId, "codCol");
+        glUniform1i(glGetUniformLocation(programId, "TexCoords"), 0);
     }
 
     void Draw(void) {
