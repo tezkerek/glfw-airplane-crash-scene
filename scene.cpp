@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,7 +27,7 @@ const float lightX = 500.f, lightY = 100.f, lightZ = 600.f;
 class Scene {
     GLuint VaoId, VboId, EboId, skyboxVAO, skyboxVBO, skyboxEboId, myMatrixLocation, matrUmbraLocation,
         viewLocation, projLocation, lightColorLocation, lightPosLocation,
-        viewPosLocation, codColLocation;
+        viewPosLocation, codColLocation, grassTextureId;
 
     float alpha = PI / 8, beta = 0.0f, dist = 400.0f;
     float Vx = 0.0, Vy = 0.0, Vz = 1.0;
@@ -135,7 +135,12 @@ public:
         GLushort Indices[] = {
             1, 2, 0, 2, 0, 3
         };
-        
+        GLfloat TextureCoordinates[] = {
+            0.0f,  0.0f,
+            10.0f, 0.0f,
+            10.0f, 10.0f,
+            0.0f,  10.0f,
+        };
         // clang-format on
 
         glGenVertexArrays(1, &VaoId);
@@ -147,7 +152,7 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId);
 
         glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(Vertices) + sizeof(Colors) + sizeof(Normals),
+                     sizeof(Vertices) + sizeof(Colors) + sizeof(Normals) + sizeof(TextureCoordinates),
                      NULL,
                      GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertices), Vertices);
@@ -159,6 +164,10 @@ public:
                         sizeof(Vertices) + sizeof(Colors),
                         sizeof(Normals),
                         Normals);
+        glBufferSubData(GL_ARRAY_BUFFER,
+                        sizeof(Vertices) + sizeof(Colors) + sizeof(Normals),
+                        sizeof(TextureCoordinates),
+                        TextureCoordinates);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                      sizeof(Indices),
                      Indices,
@@ -187,9 +196,19 @@ public:
                               GL_FALSE,
                               3 * sizeof(GLfloat),
                               (GLvoid *)(sizeof(Vertices) + sizeof(Colors)));
+
+        glEnableVertexAttribArray(3); // atributul 3 = texturare
+        glVertexAttribPointer(3,
+                              2,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              2 * sizeof(GLfloat),
+                              (GLvoid *)(sizeof(Vertices) + sizeof(Colors) + sizeof(Normals)));
+
     }
 
     void DestroyVBO(void) {
+        glDisableVertexAttribArray(3);
         glDisableVertexAttribArray(2);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(0);
@@ -216,6 +235,7 @@ public:
         lightPosLocation = glGetUniformLocation(programId, "lightPos");
         viewPosLocation = glGetUniformLocation(programId, "viewPos");
         codColLocation = glGetUniformLocation(programId, "codCol");
+        grassTextureId = TextureFromFile("forrest_ground_01.png", "assets/Texture");
     }
 
     void Draw(void) {
@@ -246,6 +266,9 @@ public:
         // matricea pentru umbra
         float D = -2.5f;
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, grassTextureId);
+
         // matricea umbrei
         float matrUmbra[4][4];
         matrUmbra[0][0] = lightZ + D;
@@ -271,7 +294,7 @@ public:
         glUniform3f(lightPosLocation, lightX, lightY, lightZ);
         glUniform3f(viewPosLocation, Obsx, Obsy, Obsz);
 
-        int codCol = 0;
+        int codCol = 2;
         glUniform1i(codColLocation, codCol);
         glm::mat4 myMatrix = glm::mat4(1.0f);
         glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
@@ -289,6 +312,8 @@ public:
         myMatrix = transl * scale * rotation;
         glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
+        codCol = 0;
+        glUniform1i(codColLocation, codCol);
         airplane.Draw(sceneShader);
 
         codCol = 2;
