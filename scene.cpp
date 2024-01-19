@@ -235,7 +235,7 @@ public:
         lightPosLocation = glGetUniformLocation(programId, "lightPos");
         viewPosLocation = glGetUniformLocation(programId, "viewPos");
         codColLocation = glGetUniformLocation(programId, "codCol");
-        grassTextureId = TextureFromFile("Texture/forrest_ground_01.png", "assets");
+        grassTextureId = TextureFromFile("forrest_ground_01.png", "assets/Texture");
     }
 
     void Draw(void) {
