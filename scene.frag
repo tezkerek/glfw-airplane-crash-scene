@@ -27,7 +27,7 @@ vec3 computeLight() {
     vec3 diffuse = diff * lightColor;
 
     // Specular
-    float specularStrength = 0.5f;
+    float specularStrength = 0.3f;
     vec3 viewDir = normalize(
         inViewPos - FragPos); // vector catre observator normalizat (V)
     vec3 reflectDir =
@@ -52,10 +52,8 @@ void main(void) {
 
         out_Color = vec4(withFog, 1.0f);
     } else if (codCol == 1) {
-        vec3 black = vec3(0.0, 0.0, 0.0);
-        vec3 fogColor = vec3(0.4f, 0.4f, 0.4f);
-        vec3 withFog = mix(fogColor, black, exp(-0.0001f * distance));
-        out_Color = vec4(withFog, 1.0);
+        vec3 black = vec3(0.1f, 0.1f, 0.1f);
+        out_Color = vec4(black, 1.0);
     } else if (codCol == 2) {
         vec4 tex = texture(texture_diffuse1, TexCoords);
         vec3 light = computeLight();
