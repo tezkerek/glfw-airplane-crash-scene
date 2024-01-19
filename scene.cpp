@@ -27,7 +27,7 @@ const float lightX = 500.f, lightY = 100.f, lightZ = 600.f;
 class Scene {
     GLuint VaoId, VboId, EboId, skyboxVAO, skyboxVBO, skyboxEboId, myMatrixLocation, matrUmbraLocation,
         viewLocation, projLocation, lightColorLocation, lightPosLocation,
-        viewPosLocation, codColLocation, texture, TextureFile;
+        viewPosLocation, codColLocation, grassTextureId;
 
     float alpha = PI / 8, beta = 0.0f, dist = 400.0f;
     float Vx = 0.0, Vy = 0.0, Vz = 1.0;
@@ -136,10 +136,10 @@ public:
             1, 2, 0, 2, 0, 3
         };
         GLfloat TextureCoordinates[] = {
-            0.0f, 0.0f,
-            5.0f, 0.0f, 
-            5.0f, 5.0f,
-            0.0f, 5.0f,
+            0.0f,  0.0f,
+            10.0f, 0.0f,
+            10.0f, 10.0f,
+            0.0f,  10.0f,
         };
         // clang-format on
 
@@ -165,7 +165,7 @@ public:
                         sizeof(Normals),
                         Normals);
         glBufferSubData(GL_ARRAY_BUFFER,
-                        sizeof(Vertices) + sizeof(Colors) + sizeof(Normals), 
+                        sizeof(Vertices) + sizeof(Colors) + sizeof(Normals),
                         sizeof(TextureCoordinates),
                         TextureCoordinates);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -235,8 +235,7 @@ public:
         lightPosLocation = glGetUniformLocation(programId, "lightPos");
         viewPosLocation = glGetUniformLocation(programId, "viewPos");
         codColLocation = glGetUniformLocation(programId, "codCol");
-        glUniform1i(glGetUniformLocation(programId, "TexCoords"), 0);
-        TextureFile = TextureFromFile("Texture/forrest_ground_01.png", "assets");
+        grassTextureId = TextureFromFile("Texture/forrest_ground_01.png", "assets");
     }
 
     void Draw(void) {
@@ -268,7 +267,7 @@ public:
         float D = -2.5f;
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, TextureFile);
+        glBindTexture(GL_TEXTURE_2D, grassTextureId);
 
         // matricea umbrei
         float matrUmbra[4][4];
@@ -316,11 +315,6 @@ public:
         codCol = 0;
         glUniform1i(codColLocation, codCol);
         airplane.Draw(sceneShader);
-
-        codCol = 3;
-        glUniform1i(codColLocation, codCol);
-        
-        glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
 
         codCol = 2;
         glUniform1i(codColLocation, codCol);
