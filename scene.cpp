@@ -15,13 +15,13 @@
 #include "values.h"
 
 const float PI = 3.141592;
-const float windowWidth = 800, windowHeight = 600;
+const float windowWidth = 1600, windowHeight = 900;
 
 // elemente pentru matricea de vizualizare
 const float Refx = 0.0f, Refy = 0.0f, Refz = 0.0f, znear = 0.1, FOV = 45;
 
 // sursa de lumina
-const float lightX = 500.f, lightY = 100.f, lightZ = 600.f;
+const float lightX = -500.f, lightY = 600.f, lightZ = 0.f;
 
 constexpr std::array faces = {"assets/skybox/right.jpg",
                               "assets/skybox/left.jpg",
@@ -35,7 +35,7 @@ class Scene {
         matrUmbraLocation, viewLocation, projLocation, lightColorLocation,
         lightPosLocation, viewPosLocation, codColLocation, grassTextureId;
 
-    float alpha = PI / 8, beta = 0.0f, dist = 400.0f;
+    float alpha = PI / 8, beta = 0.0f, dist = 600.0f;
     float Vx = 0.0, Vy = 1.0, Vz = 0.0;
 
     Shader sceneShader;
@@ -121,10 +121,10 @@ public:
     void CreateVBO(void) {
         // clang-format off
         GLfloat Vertices[] = {
-            -500.f, 0.f, -500.f, 1.0f,
-             500.f, 0.f, -500.f, 1.0f,
-             500.f, 0.f,  500.f, 1.0f,
-            -500.f, 0.f,  500.f, 1.0f,
+            -800.f, 0.f, -800.f, 1.0f,
+             800.f, 0.f, -800.f, 1.0f,
+             800.f, 0.f,  800.f, 1.0f,
+            -800.f, 0.f,  800.f, 1.0f,
         };
         GLfloat Colors[] = {
             1.f, 1.f, 0.9f,
@@ -133,10 +133,10 @@ public:
             1.f, 1.f, 0.9f,
         };
         GLfloat Normals[] = {
-            0.f, 0.f, 1.f,
-            0.f, 0.f, 1.f,
-            0.f, 0.f, 1.f,
-            0.f, 0.f, 1.f,
+            0.f, 1.f, 0.f,
+            0.f, 1.f, 0.f,
+            0.f, 1.f, 0.f,
+            0.f, 1.f, 0.f,
         };
         GLushort Indices[] = {
             1, 2, 0, 2, 0, 3
@@ -230,8 +230,9 @@ public:
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         CreateSkyboxVBO();
         CreateVBO();
-        /* CreateShaders(); */
-        // locatii pentru shader-e
+
+        grassTextureId =
+            TextureFromFile("forrest_ground_01.png", "assets/Texture");
 
         GLuint programId = sceneShader.ID;
         myMatrixLocation = glGetUniformLocation(programId, "myMatrix");
@@ -242,8 +243,6 @@ public:
         lightPosLocation = glGetUniformLocation(programId, "lightPos");
         viewPosLocation = glGetUniformLocation(programId, "viewPos");
         codColLocation = glGetUniformLocation(programId, "codCol");
-        grassTextureId =
-            TextureFromFile("forrest_ground_01.png", "assets/Texture");
     }
 
     void Draw(void) {
@@ -268,34 +267,35 @@ public:
             znear);
         glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projectionMat[0][0]);
 
-        // matricea pentru umbra
-        float D = -2.5f;
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, grassTextureId);
 
-        // matricea umbrei
+        // Shadow projection matrix
+        float D = -2.5f;
         float matrUmbra[4][4];
-        matrUmbra[0][0] = lightZ + D;
+        matrUmbra[0][0] = lightY + D;
         matrUmbra[0][1] = 0;
         matrUmbra[0][2] = 0;
         matrUmbra[0][3] = 0;
-        matrUmbra[1][0] = 0;
-        matrUmbra[1][1] = lightZ + D;
-        matrUmbra[1][2] = 0;
-        matrUmbra[1][3] = 0;
-        matrUmbra[2][0] = -lightX;
-        matrUmbra[2][1] = -lightY;
-        matrUmbra[2][2] = D;
-        matrUmbra[2][3] = -1;
+
+        matrUmbra[1][0] = -lightX;
+        matrUmbra[1][1] = D;
+        matrUmbra[1][2] = -lightZ;
+        matrUmbra[1][3] = -1;
+
+        matrUmbra[2][0] = 0;
+        matrUmbra[2][1] = 0;
+        matrUmbra[2][2] = lightY + D;
+        matrUmbra[2][3] = 0;
+
         matrUmbra[3][0] = -D * lightX;
         matrUmbra[3][1] = -D * lightY;
         matrUmbra[3][2] = -D * lightZ;
-        matrUmbra[3][3] = lightZ;
+        matrUmbra[3][3] = lightY;
         glUniformMatrix4fv(matrUmbraLocation, 1, GL_FALSE, &matrUmbra[0][0]);
 
         // Variabile uniforme pentru iluminare
-        glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
+        glUniform3f(lightColorLocation, 0.5f, 0.5f, 0.5f);
         glUniform3f(lightPosLocation, lightX, lightY, lightZ);
         glUniform3f(viewPosLocation, Obsx, Obsy, Obsz);
 
@@ -321,20 +321,19 @@ public:
         glUniform1i(codColLocation, codCol);
         airplane.Draw(sceneShader);
 
+        codCol = 1;
+        glUniform1i(codColLocation, codCol);
+        airplane.Draw(sceneShader);
+
+        // Trees
         codCol = 2;
         glUniform1i(codColLocation, codCol);
-        scale = glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
-        for (auto &&[treeType, coordinates] : TREE_COORDINATES) {
-            const float treeXCoord = coordinates.first;
-            const float treeZCoord = coordinates.second;
+        DrawTrees();
 
-            transl = glm::translate(glm::vec3(treeXCoord, 0.0f, treeZCoord));
-
-            myMatrix = transl * scale;
-            glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
-
-            tree.meshes[treeType].Draw(sceneShader);
-        }
+        // Tree shadows
+        codCol = 1;
+        glUniform1i(codColLocation, codCol);
+        DrawTrees();
 
         // Change depth function so depth test passes when values are equal to
         // depth buffer's content
@@ -354,6 +353,21 @@ public:
         glDepthFunc(GL_LESS);
 
         glFlush();
+    }
+
+    void DrawTrees() {
+        glm::mat4 scale = glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
+        for (auto &&[treeType, coordinates] : TREE_COORDINATES) {
+            const float treeXCoord = coordinates.first;
+            const float treeZCoord = coordinates.second;
+
+            glm::mat4 transl = glm::translate(glm::vec3(treeXCoord, 0.0f, treeZCoord));
+
+            glm::mat4 modelMat = transl * scale;
+            glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &modelMat[0][0]);
+
+            tree.meshes[treeType].Draw(sceneShader);
+        }
     }
 
     void OnKeyPress(int button) {
